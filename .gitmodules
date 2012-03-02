@@ -1,0 +1,3 @@
+[submodule "pywallet"]
+	path = pywallet
+	url = https://github.com/joric/pywallet
