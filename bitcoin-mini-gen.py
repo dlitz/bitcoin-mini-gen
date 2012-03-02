@@ -11,15 +11,21 @@ import pywallet
 from Crypto.Random.random import sample as secure_sample
 from Crypto.Hash import SHA256
 
+def valid_mini(candidate):
+    return SHA256.new(candidate + "?").digest()[0] == "\0"
+
 def generate_mini_private_key(length=30):       # length can be 22, 26, or 30
     while True:
         candidate = "S" + "".join(secure_sample(pywallet.__b58chars, 1)[0] for i in range(length-1))
-        if SHA256.new(candidate + "?").digest()[0] == "\0":
+        if valid_mini(candidate):
             return candidate
 
 def main():
     if sys.argv[1:]:
         sec_mini = sys.argv[1]
+        if not valid_mini(sec_mini):
+            print >>sys.stderr, "not a valid mini key"
+            sys.exit(1)
     else:
         sec_mini = generate_mini_private_key()
     sec_raw = SHA256.new(sec_mini).digest()
