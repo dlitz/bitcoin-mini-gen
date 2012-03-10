@@ -21,14 +21,24 @@ def generate_mini_private_key(length=30):       # length can be 22, 26, or 30
             return candidate
 
 def main():
-    if sys.argv[1:]:
-        sec_mini = sys.argv[1]
+    parser = OptionParser()
+    parser.add_option("--testnet", help="generate testnet addresses", dest="testnet", action="store_true", default=False)
+    parser.add_option("--wif", help="specify a WIF address on the command line instead of generating it", dest="wif", action="store_true", default=False)
+    (options, args) = parser.parse_args()
+    if options.testnet:
+        pywallet.addrtype = 111
+    if options.wif:
+        sec_mini = None
+        sec_raw = pywallet.DecodeBase58Check(args[0])[1:]
+    elif args:
+        sec_mini = args[0]
         if not valid_mini(sec_mini):
             print >>sys.stderr, "not a valid mini key"
             sys.exit(1)
+        sec_raw = SHA256.new(sec_mini).digest()
     else:
         sec_mini = generate_mini_private_key()
-    sec_raw = SHA256.new(sec_mini).digest()
+        sec_raw = SHA256.new(sec_mini).digest()
     sec_hex = sec_raw.encode('hex').upper()
     sec_wallet = pywallet.EncodeBase58Check("\x80" + sec_raw)   # wallet import format
     pkey = pywallet.regenerate_key(pywallet.SecretToASecret(sec_raw))
